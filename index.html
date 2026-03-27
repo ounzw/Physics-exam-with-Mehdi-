@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الفيزياء الطبية - د. مهدي</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #818cf8;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-light: #f8fafc;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --accent: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Welcome Screen */
+        #welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .welcome-content {
+            max-width: 800px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .welcome-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.6;
+            background: linear-gradient(to right, #fff, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Quiz Container */
+        #quiz-container {
+            display: none;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .quiz-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            direction: ltr; /* Added to keep timer and counter neat */
+        }
+
+        .timer {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 600;
+            border: 1px solid var(--accent);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #334155;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            direction: ltr;
+        }
+
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #e2e8f0;
+            direction: ltr; /* English text formatting */
+            text-align: left; /* English text formatting */
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            direction: ltr; /* English text formatting */
+        }
+
+        .option-btn {
+            background: #334155;
+            border: 2px solid transparent;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left; /* English text formatting */
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #475569;
+            transform: translateX(5px); /* Changed to positive for LTR */
+            border-color: var(--secondary);
+        }
+
+        .option-btn.correct {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: var(--success);
+        }
+
+        .option-btn.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--danger);
+        }
+
+        /* Explanation Box */
+        .explanation {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-right: 4px solid var(--primary);
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.5s ease;
+            direction: rtl; /* Arabic text formatting */
+            text-align: right; /* Arabic text formatting */
+        }
+
+        .explanation h4 { color: var(--secondary); margin-top: 0; }
+        .explanation p { font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; }
+
+        .btn-main {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-main:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        #next-btn {
+            display: none;
+            margin-top: 20px;
+            float: left;
+        }
+
+        /* Result Screen */
+        #result-screen {
+            display: none;
+            text-align: center;
+            animation: zoomIn 0.5s ease;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 8px solid var(--primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 30px auto;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes zoomIn {
+            from { opacity: 0; scale: 0.9; }
+            to { opacity: 1; scale: 1; }
+        }
+
+        @media (max-width: 600px) {
+            .welcome-text { font-size: 1.6rem; }
+            .quiz-card { padding: 15px; }
+            .question-text { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="welcome-screen">
+        <div class="welcome-content">
+            <div class="welcome-text">
+                تعال اختبر فيزياء عملي وي الدكتور الموقر المحترم الجميل اللطيف المحبوب مهدي
+            </div>
+            <button class="btn-main" onclick="startQuiz()">Start Exam</button>
+        </div>
+    </div>
+
+    <div id="quiz-container">
+        <div class="quiz-card">
+            <div class="header-info">
+                <div id="question-counter" style="font-weight: 600;">Question 1/50</div>
+                <div class="timer" id="timer">00:00</div>
+            </div>
+            
+            <div class="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+
+            <div id="question-box">
+                <div class="question-text" id="q-text"></div>
+                <div class="options-grid" id="options"></div>
+                <div class="explanation" id="exp-box">
+                    <h4>💡 الشرح التفصيلي للتعلم:</h4>
+                    <div id="exp-content"></div>
+                </div>
+            </div>
+
+            <button id="next-btn" class="btn-main" onclick="handleNext()">Next Question</button>
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+
+    <div id="quiz-container-result">
+        <div class="quiz-card" id="result-screen">
+            <h1 style="color: var(--secondary);">تم إكمال الاختبار!</h1>
+            <div class="score-circle">
+                <span id="final-score">0</span>
+                <small style="font-size: 0.9rem;">من 50</small>
+            </div>
+            <p id="feedback-msg" style="margin-bottom: 30px; font-size: 1.1rem;"></p>
+            <button class="btn-main" onclick="location.reload()">إعادة الاختبار 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            // --- Lab 1: Measurements & Graph ---
+            {
+                q: "If the main scale reading of a vernier caliper is 2.4 cm and the coinciding vernier scale division is 6, what is the total reading in mm? (Given the least count is 0.1 mm)",
+                opts: ["24.6 mm", "2.46 mm", "24.06 mm", "30 mm"],
+                ans: 0,
+                exp: "<b>القانون:</b> القراءة = قراءة المقياس الرئيسي + (رقم الخط المنطبق × دقة الجهاز).<br>1- تحويل 2.4 cm إلى mm نضرب في 10 فتصبح 24 mm.<br>2- نضرب الخط 6 في الدقة 0.1 فتصبح 0.6 mm.<br>3- الجمع: 24 + 0.6 = 24.6 mm.<br>الخيارات الأخرى غير صحيحة لأنها إما أخطاء في التحويل أو في رتبة الدقة."
+            },
+            {
+                q: "In a graph, if y2=0.8, y1=0.2 and x2=40, x1=10, calculate the slope.",
+                opts: ["0.02", "0.2", "50", "0.06"],
+                ans: 0,
+                exp: "<b>القانون:</b> Slope = (y2 - y1) / (x2 - x1).<br>التعويض: (0.8 - 0.2) / (40 - 10) = 0.6 / 30 = 0.02.<br>الميل يمثل نسبة التغير بين المتغيرين، وهو أساس فهم العلاقات الطردية في تجاربنا."
+            },
+            { q: "What is the primary function of the Spectrometer in the laboratory?", opts: ["Measuring mass", "Measuring diffraction angles", "Measuring pressure", "Heating samples"], ans: 1, exp: "يستخدم المطياف لدراسة الضوء وتحليله وقياس زوايا انحرافه بدقة عالية." },
+            { q: "When plotting the relationship y=mx+a, what does the symbol 'a' represent?", opts: ["The slope", "The y-intercept", "The independent variable", "The error coefficient"], ans: 1, exp: "a هو الـ y-intercept، أي القيمة التي يقطع فيها الخط المستقيم المحور العمودي عندما تكون x=0." },
+            { q: "Which of the following is classified as a 'measuring tool' rather than a 'preparation tool'?", opts: ["Beaker", "Glass rod", "Vernier Caliper", "Test tube"], ans: 2, exp: "الفيرنية أداة قياس دقيقة للأبعاد، بينما البيكر يُستخدم للتحضير والخلط ولا يعطي قياسات دقيقة." },
+            { q: "What is the unit of the slope if the y-axis is in (mm) and the x-axis is in (V)?", opts: ["mm/V", "V/mm", "mm.V", "No unit"], ans: 0, exp: "الوحدة هي دائماً (وحدة الصادات) مقسومة على (وحدة السينات)." },
+            { q: "Why do students' results differ when measuring the same sample with the same instrument?", opts: ["Only room temperature differences", "Systematic and personal errors", "Changes in gravity", "Changes in instrument color"], ans: 1, exp: "الاختلاف يعود لمهارة الشخص في القراءة (أخطاء بشرية) أو دقة معايرة الجهاز نفسه." },
+            { q: "Which relationship represents a straight line passing through the origin?", opts: ["y = mx + a", "y = mx", "y = x^2", "y = a"], ans: 1, exp: "في معادلة y=mx، تكون قيمة a=0، لذا يبدأ الخط من النقطة (0,0)." },
+            { q: "If the slope is 0.5 and x increases by 10, by how much will y increase?", opts: ["5", "20", "0.5", "10.5"], ans: 0, exp: "بما أن Slope = Dy/Dx، فإن 0.5 = Dy / 10، بالتالي Dy = 0.5 * 10 = 5." },
+            { q: "The main objective of the first laboratory experiment is:", opts: ["Manufacturing devices", "Learning graphing and error calculation", "Measuring weight only", "Studying bacteria"], ans: 1, exp: "التجربة الأولى تهدف لتعريف الطالب بأدوات القياس وكيفية تمثيل البيانات بيانياً واستخراج النتائج." },
+
+            // --- Lab 2: Polarimeter ---
+            {
+                q: "Calculate the concentration (C) if the mass is 20g and the volume of distilled water is 100cm3.",
+                opts: ["0.2 g/cm3", "2 g/cm3", "2000 g/cm3", "5 g/cm3"],
+                ans: 0,
+                exp: "<b>القانون:</b> C = m / V.<br>التعويض: 20 / 100 = 0.2 g/cm3.<br>هذا التركيز هو الأساس الذي نعتمد عليه لحساب الدوران النوعي لاحقاً."
+            },
+            {
+                q: "If the angle (Theta) is 15 degrees, the tube length is 20cm, and the concentration is 0.1, calculate the specific rotation (S) using the formula S = (10 * Theta) / (L * C).",
+                opts: ["75", "750", "150", "7.5"],
+                ans: 1,
+                exp: "<b>الحساب:</b> S = (10 * 15) / (20 * 0.1) = 150 / 2 = 75.<br><b>ملاحظة:</b> تأكد دائماً من الضرب في 10 بالبسط حسب القانون المختبري."
+            },
+            { q: "What substance is used as a reference (Zero reading) in the polarimeter?", opts: ["Sugar solution", "Oil", "Distilled water", "Alcohol"], ans: 2, exp: "الماء المقطر ليس مادة نشطة بصرياً، لذا نستخدمه لتصفير الجهاز وضمان دقة القياسات اللاحقة." },
+            { q: "Substances that rotate the plane of polarization to the left are called:", opts: ["Dextrorotatory", "Levorotatory", "Neutral", "Isotropic"], ans: 1, exp: "المواد اليسارية (Levorotatory) تدور الضوء عكس عقارب الساعة." },
+            { q: "What type of light waves does the phenomenon of polarization deal with?", opts: ["Longitudinal waves", "Transverse waves", "Sound waves", "Seismic waves"], ans: 1, exp: "الاستقطاب يحدث فقط للموجات المستعرضة (Transverse) حيث يكون الاهتزاز عمودياً على اتجاه الانتشار." },
+            { q: "What happens when a salt solution (NaCl) is used instead of sugar?", opts: ["Strong light rotation", "No rotation occurs", "Light refracts", "Turns into a laser"], ans: 1, exp: "الملح ليس مادة نشطة بصرياً (Optically active)، لذا لا يمتلك القدرة على تدوير مستوى الاستقطاب." },
+            { q: "Why does the field of view in a polarimeter consist of two halves (quartz and glass)?", opts: ["For aesthetics", "To equalize light intensity to facilitate reading", "To magnify the image", "To protect the eye"], ans: 1, exp: "استخدام نصفين يسمح للعين بملاحظة أقل اختلاف في الإضاءة (نظام الظلال الثلاثة) مما يزيد دقة تحديد زاوية الدوران." },
+            { q: "The relationship between the solution's concentration and the angle of rotation is:", opts: ["Inverse", "Direct", "Constant", "Logarithmic"], ans: 1, exp: "كلما زاد عدد الجزيئات (التركيز)، زاد التفاعل مع الضوء وزادت زاوية الدوران (Theta)." },
+            { q: "The unit of Specific Rotation in our experiment is:", opts: ["Degree", "degree.cm2/g", "g/cm3", "cm"], ans: 1, exp: "الوحدة تشمل الزاوية والتركيز والطول حسب القانون المستخدم." },
+            { q: "If the tube length L=10cm, how much is this in decimeters (dm)?", opts: ["100 dm", "1 dm", "0.1 dm", "10 dm"], ans: 1, exp: "التحويل من cm إلى dm نقسم على 10، لذا 10cm = 1dm." },
+
+            // --- Lab 3: Body Functions ---
+            {
+                q: "A person has a mass of 100kg and a height of 2m. Calculate the Body Mass Index (BMI).",
+                opts: ["25", "50", "40", "20"],
+                ans: 0,
+                exp: "<b>القانون:</b> BMI = Mass / (Height^2).<br>التعويض: 100 / (2 * 2) = 100 / 4 = 25.<br>هذا الشخص يقع ضمن الوزن الطبيعي (Normal) حسب التصنيفات العالمية."
+            },
+            {
+                q: "Calculate the Body Surface Area (BSA) for a person with a mass of 81kg and height of 100cm (using the approximate formula √(H*M/3600)).",
+                opts: ["1.5 m2", "2.25 m2", "1.0 m2", "1.8 m2"],
+                ans: 0,
+                exp: "<b>الحساب:</b> جذر (100 * 81 / 3600) = جذر (8100 / 3600) = جذر (2.25) = 1.5 m2.<br>مساحة سطح الجسم ضرورية جداً لحساب جرعات الأدوية."
+            },
+            { q: "What is the BMI classification for a person with a result of 17?", opts: ["Ideal weight", "Overweight", "Underweight", "Obese"], ans: 2, exp: "أي قيمة تحت 18.5 تُصنف كنقص وزن (Underweight)." },
+            { q: "Which ratio is used to predict the risks of central obesity and heart disease?", opts: ["BMI", "BSA", "Waist-to-Height Ratio (WHR)", "Temperature"], ans: 2, exp: "نسبة الخصر إلى الطول (WHR) تعتبر مؤشراً أدق لتوزيع الدهون في البطن وعلاقتها بأمراض القلب." },
+            { q: "Why is BSA considered more accurate than weight in determining chemotherapy doses?", opts: ["Because it's easier", "Because it better reflects metabolism and blood flow rate", "Because scales are always wrong", "There is no difference"], ans: 1, exp: "توزيع السوائل والأدوية في الجسم يرتبط بمساحة الأنسجة والتروية، وهو ما تعبر عنه مساحة سطح الجسم." },
+            { q: "A person has a waist circumference of 90cm and a height of 180cm. Calculate the WHR.", opts: ["2.0", "0.5", "0.6", "1.0"], ans: 1, exp: "90 / 180 = 0.5. هذه النسبة تُعتبر صحية (Healthy) للرجال." },
+            { q: "What is the acceleration due to gravity used to convert mass into weight in Newtons?", opts: ["9.8 m/s2", "100 m/s2", "1.6 m/s2", "5.5 m/s2"], ans: 0, exp: "التعجيل القياسي هو 9.8، وبضربه في الكتلة (kg) نحصل على الوزن (Newton)." },
+            { q: "What does the 'Ultrasonic height/weight scale' rely on to measure height?", opts: ["Wooden ruler", "Ultrasonic waves", "X-rays", "Laser"], ans: 1, exp: "الجهاز يرسل نبضة صوتية ويقيس زمن ارتدادها من رأس الشخص لحساب المسافة (الطول) بدقة." },
+            { q: "According to Du Bois, the body surface area for an average adult male is approximately:", opts: ["1.0 m2", "1.9 m2", "3.5 m2", "0.5 m2"], ans: 1, exp: "المساحة المعيارية للرجل حوالي 1.9، وللمرأة حوالي 1.6 متر مربع." },
+            { q: "If a person's height increases (while mass remains constant), what happens to their BMI?", opts: ["Increases", "Decreases", "Remains constant", "Becomes zero"], ans: 1, exp: "بما أن الطول في المقام (H^2)، فالعلاقة عكسية؛ زيادة الطول تقلل مؤشر كتلة الجسم." },
+
+            // --- Lab 4: Laser Diffraction ---
+            {
+                q: "If the number of lines in a grating is 500 lines/mm, what is the distance between the slits (d) in millimeters?",
+                opts: ["0.002 mm", "500 mm", "0.5 mm", "200 mm"],
+                ans: 0,
+                exp: "<b>القانون:</b> d = 1 / N.<br>التعويض: 1 / 500 = 0.002 mm.<br>هذه المسافة المجهرية هي التي تسمح بحدوث ظاهرة حيود الضوء."
+            },
+            {
+                q: "Calculate the wavelength (λ) if d=0.002mm, order m=1, and diffraction angle Sin(θ)=0.315. (Use λ = d*Sinθ / m)",
+                opts: ["630 nm", "500 nm", "400 nm", "700 nm"],
+                ans: 0,
+                exp: "<b>الحساب:</b> λ = 0.002 * 0.315 / 1 = 0.00063 mm.<br>للتحويل لـ nm نضرب في 1,000,000 فتصبح 630 nm (وهو طول موجي لليزر الأحمر)."
+            },
+            { q: "What does the symbol (m) represent in the diffraction equation d sinθ = mλ?", opts: ["Mass", "Fringe order (m)", "Distance to the screen", "Laser power"], ans: 1, exp: "m تمثل رتبة الهدب المضيء، حيث 0 للمركزي، 1 للهدب الأول، وهكذا." },
+            { q: "Which of the following describes the phenomenon of 'Diffraction'?", opts: ["Light reflection", "Bending of light around obstacles", "Light absorption", "Change in light color"], ans: 1, exp: "الحيود هو قدرة الموجات على الانحناء والانتشار عند مرورها بفتحات ضيقة أو حواف حادة." },
+            { q: "What will happen to the bright pattern on the screen if the number of grating lines (N) increases?", opts: ["Points move closer to each other", "Points move further apart (angle increases)", "Points disappear", "Color turns white"], ans: 1, exp: "زيادة N تعني نقصان d. وحسب القانون d sinθ = mλ، إذا قلت d يجب أن تزداد الزاوية ليبقى الطرف الآخر ثابتاً، لذا تتباعد النقاط." },
+            { q: "Why do we use a laser instead of normal light in this experiment?", opts: ["Because it is cheaper", "Because it is monochromatic light", "Because it doesn't need electricity", "Because it penetrates walls"], ans: 1, exp: "الليزر يعطي ضوءاً بلون واحد وتردد واحد، مما يجعل نمط الحيود واضحاً ومحدداً بدقة للحسابات." },
+            { q: "If the distance between the grating and the screen L=100cm and the distance to the first fringe h=20cm, what is the value of tan(θ)?", opts: ["5", "0.2", "120", "80"], ans: 1, exp: "tan(θ) = h / L = 20 / 100 = 0.2." },
+            { q: "The central fringe always appears in the middle and its order m is equal to:", opts: ["1", "0", "No order", "10"], ans: 1, exp: "الهدب المركزي هو نقطة الصفر للحيود حيث لا يوجد فرق مسار بين الموجات." },
+            { q: "What type of interference produces the bright spots on the screen?", opts: ["Destructive interference", "Constructive interference", "No interference", "Refraction"], ans: 1, exp: "النقاط المضيئة تنتج من التداخل البناء حيث تقوي الموجات بعضها البعض." },
+            { q: "Laser devices used in medicine (like eye surgery) rely for their understanding on:", opts: ["Diffraction and focusing properties", "Atmospheric pressure", "Speed of sound", "Chemical reactions"], ans: 0, exp: "فهم كيفية تفاعل الليزر مع الشقوق والأنسجة يعتمد كلياً على قوانين البصريات الموجية مثل الحيود." },
+
+            // --- Lab 8: IR Thermometer ---
+            {
+                q: "A human body radiates thermal energy. If its temperature is 37°C, what is it in Kelvin (K)?",
+                opts: ["273.15 K", "310.15 K", "98.6 K", "37 K"],
+                ans: 1,
+                exp: "<b>القانون:</b> K = C + 273.15.<br>37 + 273.15 = 310.15 K.<br>الكلفن هو الوحدة المطلقة المستخدمة في قوانين الإشعاع الفيزيائية."
+            },
+            {
+                q: "If the measured temperature (Tr) is 36.8°C and the actual temperature (Ts) is 36.2°C, calculate the error margin (Ei).",
+                opts: ["0.6", "-0.6", "0.2", "73"],
+                ans: 0,
+                exp: "<b>القانون:</b> Ei = Tr - Ts.<br>36.8 - 36.2 = 0.6.<br>الخطأ الموجب يعني أن الجهاز يعطي قراءة أعلى من الحقيقة."
+            },
+            { q: "What is the method by which the body transfers heat through electromagnetic waves?", opts: ["Conduction", "Convection", "Radiation", "Evaporation"], ans: 2, exp: "الإشعاع هو الطريقة الوحيدة التي لا تحتاج لوسط مادي وتتم عبر الموجات الكهرومغناطيسية (الأشعة تحت الحمراء)." },
+            { q: "The infrared thermometer measures temperature by:", opts: ["Direct contact", "Absorbing radiation emitted by the body", "Sending heat to the body", "Measuring blood speed"], ans: 1, exp: "الجهاز لا يرسل شيئاً، بل يمتلك مستشعراً يمتص الأشعة تحت الحمراء التي يطلقها جسمنا طبيعياً ويحولها لدرجة حرارة." },
+            { q: "Why is the ear (Tympanic membrane) considered an ideal place to measure temperature?", opts: ["Because it shares blood supply with the thermoregulatory center in the brain", "Because it is the coldest area", "Because it is easy to clean", "Because radiation doesn't reach it"], ans: 0, exp: "غشاء الطبلة يشارك الشرايين التي تغذي الـ Hypothalamus (مركز تنظيم الحرارة)، لذا يعطي أدق قراءة لحرارة اللب (Core temperature)." },
+            { q: "Converting 37°C to Fahrenheit (F) gives:", opts: ["98.6 F", "100 F", "32 F", "212 F"], ans: 0, exp: "<b>القانون:</b> F = (C * 9/5) + 32. بالتعويض نحصل على 98.6 وهي درجة حرارة الإنسان الطبيعية." },
+            { q: "What is the function of the ADC (Analog to Digital Converter) in a digital thermometer?", opts: ["Cooling the device", "Converting the continuous electrical signal into numbers displayed on the screen", "Enlarging the device size", "Charging the battery"], ans: 1, exp: "المستشعر يعطي جهداً كهربائياً (Analog)، والـ ADC يحوله إلى بيانات رقمية تفهمها الشاشة وتعرضها كأرقام." },
+            { q: "The thermal radiation from the human body falls within which region of the spectrum?", opts: ["Ultraviolet rays", "Visible light", "Infrared rays", "X-rays"], ans: 2, exp: "أجسامنا في درجات الحرارة الطبيعية تشع طاقة في نطاق الأشعة تحت الحمراء البعيدة غير المرئية." },
+            { q: "When measuring skin temperature, which factors might affect the accuracy of the reading?", opts: ["Sweat (Evaporation)", "Clothing color", "Speed of sound", "Shoe type"], ans: 0, exp: "تبخر العرق يبرد سطح الجلد ويجعل القراءة تظهر أقل من حرارة الجسم الحقيقية." },
+            { q: "Accuracy in medical measuring devices is defined as:", opts: ["How close the results are to each other (Precision)", "How close the measured reading is to the true value", "Speed of the result appearing", "Device price"], ans: 1, exp: "الدقة هي الـ Accuracy، وتعني القرب من الحقيقة، بينما تقارب النتائج من بعضها يسمى 'الضبط' (Precision)." }
+        ];
+
+        let shuffledQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let timerInterval;
+        let seconds = 0;
+
+        function startQuiz() {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'block';
+            shuffledQuestions = questions.sort(() => Math.random() - 0.5);
+            loadQuestion();
+            startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                document.getElementById('timer').innerText = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            const q = shuffledQuestions[currentIndex];
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('question-counter').innerText = `Question ${currentIndex + 1}/50`;
+            
+            // Progress Bar
+            const prog = ((currentIndex) / 50) * 100;
+            document.getElementById('progress-bar').style.width = prog + "%";
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            q.opts.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>${opt}</span> <span class="icon"></span>`;
+                btn.onclick = () => checkAnswer(i, btn);
+                optionsDiv.appendChild(btn);
+            });
+
+            document.getElementById('exp-box').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        function checkAnswer(idx, btn) {
+            const q = shuffledQuestions[currentIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(b => b.disabled = true);
+
+            if (idx === q.ans) {
+                btn.classList.add('correct');
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                buttons[q.ans].classList.add('correct');
+            }
+
+            // Show Explanation
+            document.getElementById('exp-content').innerHTML = q.exp;
+            document.getElementById('exp-box').style.display = 'block';
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function handleNext() {
+            currentIndex++;
+            if (currentIndex < shuffledQuestions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('quiz-container-result').style.display = 'block';
+            document.getElementById('final-score').innerText = score;
+
+            let msg = "";
+            if (score >= 45) msg = "مذهل! أنت بطل الفيزياء القادم دكتور. مهدي سيفتخر بك! 🌟";
+            else if (score >= 35) msg = "أداء رائع جداً، معلوماتك قوية ومركزة. ✨";
+            else if (score >= 25) msg = "جيد، لكن تحتاج لمراجعة القوانين الحسابية أكثر. 📚";
+            else msg = "لا بأس، الفيزياء العملي ممتعة.. أعد الاختبار وتعلم من الشرح! 🛠️";
+            
+            document.getElementById('feedback-msg').innerText = msg;
+        }
+    </script>
+</body>
+</html>
